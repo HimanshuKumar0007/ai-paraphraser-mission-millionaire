@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WordlyAi Login - Intelligent Writing Assistant">
+    <title>Login | WordlyAi</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            min-width: 250px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        /* Background Blobs */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: float 10s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+        }
+
+        /* Mobile Performance */
+        @media (max-width: 768px) {
+            .blob {
+                display: none;
+            }
+
+            .glass-panel {
+                backdrop-filter: none;
+                background: #0f172a;
+            }
+        }
+
+        /* Focus States */
+        input:focus {
+            outline: 2px solid #60a5fa;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+
+    <!-- Background Blobs -->
+    <div class="blob bg-indigo-600 w-96 h-96 rounded-full top-0 left-0 blur-3xl opacity-20"></div>
+    <div class="blob bg-purple-600 w-96 h-96 rounded-full bottom-0 right-0 blur-3xl opacity-20"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-40 bg-slate-900/80 backdrop-blur-md border-b border-white/5 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <div
+                        class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i data-lucide="pen-tool" class="text-white w-5 h-5"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">WordlyAi</span>
+                </a>
+                <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">←
+                    Back to Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex items-center justify-center pt-16 pb-8 px-4">
+        <div class="w-full max-w-md animate-fade-in">
+            <!-- Auth Card -->
+            <div class="glass-panel rounded-2xl p-8 shadow-2xl">
+                <!-- Logo Section -->
+                <div class="text-center mb-8">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
+                        <i data-lucide="lock" class="text-white w-8 h-8"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold mb-2">
+                        Welcome to <span class="text-gradient">WordlyAi</span>
+                    </h1>
+                    <p class="text-slate-400 text-sm">Your intelligent writing assistant</p>
+                </div>
+
+                <!-- Tab Switcher -->
+                <div class="flex gap-2 mb-6 bg-slate-800/50 rounded-lg p-1">
+                    <button id="login-tab" onclick="switchTab('login')"
+                        class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all bg-blue-600 text-white">
+                        Login
+                    </button>
+                    <button id="signup-tab" onclick="switchTab('signup')"
+                        class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">
+                        Sign Up
+                    </button>
+                </div>
+
+                <!-- Form Container -->
+                <form id="auth-form" onsubmit="handleSubmit(event)">
+                    <!-- Name Field (Signup only) -->
+                    <div id="name-field" class="mb-4 hidden">
+                        <label for="name" class="block text-sm font-medium text-slate-300 mb-2">
+                            Name
+                        </label>
+                        <input type="text" id="name" name="name" autocomplete="name"
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                            placeholder="Your name">
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-slate-300 mb-2">
+                            Email
+                        </label>
+                        <input type="email" id="email" name="email" required autocomplete="email"
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                            placeholder="you@example.com">
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-4">
+                        <label for="password" class="block text-sm font-medium text-slate-300 mb-2">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="password" name="password" required
+                                autocomplete="current-password"
+                                class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all pr-12"
+                                placeholder="••••••••">
+                            <button type="button" onclick="togglePassword()"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                                <i data-lucide="eye" id="password-toggle-icon" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Minimum 6 characters</p>
+                    </div>
+
+                    <!-- Confirm Password (Signup only) -->
+                    <div id="confirm-password-field" class="mb-6 hidden">
+                        <label for="confirm-password" class="block text-sm font-medium text-slate-300 mb-2">
+                            Confirm Password
+                        </label>
+                        <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password"
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                            placeholder="••••••••">
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="error-message" class="mb-4 hidden">
+                        <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-2">
+                            <i data-lucide="alert-circle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
+                            <p class="text-sm text-red-400" id="error-text"></p>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-btn"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2">
+                        <span id="submit-text">Login</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </form>
+
+                <!-- Forgot Password (Login only) -->
+                <div id="forgot-password-link" class="text-center mt-4">
+                    <button onclick="switchTab('forgot')"
+                        class="text-sm text-slate-400 hover:text-blue-400 transition-colors">
+                        Forgot password?
+                    </button>
+                </div>
+
+                <!-- Forgot Password Form -->
+                <form id="forgot-form" onsubmit="handleForgotSubmit(event)" class="hidden">
+                    <div class="mb-4">
+                        <label for="forgot-email" class="block text-sm font-medium text-slate-300 mb-2">
+                            Enter your email address
+                        </label>
+                        <input type="email" id="forgot-email" name="email" required
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                            placeholder="you@example.com">
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="forgot-error-message" class="mb-4 hidden">
+                        <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-start gap-2">
+                            <i data-lucide="alert-circle" class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5"></i>
+                            <p class="text-sm text-red-400" id="forgot-error-text"></p>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="forgot-submit-btn"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2">
+                        <span id="forgot-submit-text">Send Reset Link</span>
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                    </button>
+
+                    <div class="text-center mt-4">
+                        <button type="button" onclick="switchTab('login')"
+                            class="text-sm text-slate-400 hover:text-white transition-colors">
+                            ← Back to Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Additional Info -->
+            <p class="text-center text-slate-500 text-sm mt-6">
+                By continuing, you agree to our
+                <a href="#" class="text-blue-400 hover:underline">Terms of Service</a> and
+                <a href="#" class="text-blue-400 hover:underline">Privacy Policy</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        // State management
+        let isLoginMode = true;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
+        // Tab switching
+        function switchTab(mode) {
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            const authForm = document.getElementById('auth-form');
+            const forgotForm = document.getElementById('forgot-form');
+            const tabSwitcher = document.querySelector('.flex.gap-2.mb-6'); // The tab container
+            const forgotLink = document.getElementById('forgot-password-link');
+
+            // Name/Confirm Password fields in main auth form
+            const nameField = document.getElementById('name-field');
+            const confirmPasswordField = document.getElementById('confirm-password-field');
+            const submitText = document.getElementById('submit-text');
+
+            hideError();
+
+            if (mode === 'forgot') {
+                // Show Forgot Password Form, Hide others
+                authForm.classList.add('hidden');
+                tabSwitcher.classList.add('hidden');
+                forgotLink.classList.add('hidden');
+                forgotForm.classList.remove('hidden');
+                return;
+            }
+
+            // If coming back from forgot password
+            authForm.classList.remove('hidden');
+            tabSwitcher.classList.remove('hidden');
+            forgotForm.classList.add('hidden');
+
+            isLoginMode = mode === 'login';
+
+            if (isLoginMode) {
+                loginTab.classList.add('bg-blue-600', 'text-white');
+                loginTab.classList.remove('text-slate-400');
+                signupTab.classList.remove('bg-blue-600', 'text-white');
+                signupTab.classList.add('text-slate-400');
+
+                nameField.classList.add('hidden');
+                confirmPasswordField.classList.add('hidden');
+                forgotLink.classList.remove('hidden');
+                submitText.textContent = 'Login';
+
+                document.getElementById('name').removeAttribute('required');
+                document.getElementById('confirm-password').removeAttribute('required');
+            } else {
+                signupTab.classList.add('bg-blue-600', 'text-white');
+                signupTab.classList.remove('text-slate-400');
+                loginTab.classList.remove('bg-blue-600', 'text-white');
+                loginTab.classList.add('text-slate-400');
+
+                nameField.classList.remove('hidden');
+                confirmPasswordField.classList.remove('hidden');
+                forgotLink.classList.add('hidden');
+                submitText.textContent = 'Sign Up';
+
+                document.getElementById('name').setAttribute('required', '');
+                document.getElementById('confirm-password').setAttribute('required', '');
+            }
+        }
+
+        // ... existing togglePassword ... (omitted in tool, but I can't emit "...")
+        // Actually I should just modify what I need.
+        // Wait, replace_file_content replaces the whole block I select.
+
+        // Password visibility toggle
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.getElementById('password-toggle-icon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                passwordInput.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon = 'info';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'error') icon = 'alert-circle';
+
+            toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            requestAnimationFrame(() => toast.classList.add('show'));
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Error handling
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function showForgotError(message) {
+            const errorDiv = document.getElementById('forgot-error-message');
+            const errorText = document.getElementById('forgot-error-text');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function hideError() {
+            document.getElementById('error-message').classList.add('hidden');
+            const forgotErr = document.getElementById('forgot-error-message');
+            if (forgotErr) forgotErr.classList.add('hidden');
+        }
+
+        // Form submission
+        async function handleSubmit(event) {
+            event.preventDefault();
+            hideError();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+
+            // Validation
+            if (!email || !password) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters');
+                return;
+            }
+
+            if (!isLoginMode) {
+                const name = document.getElementById('name').value.trim();
+                const confirmPassword = document.getElementById('confirm-password').value;
+
+                if (!name) {
+                    showError('Please enter your name');
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    showError('Passwords do not match');
+                    return;
+                }
+            }
+
+            // Loading state
+            submitBtn.disabled = true;
+            submitText.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+
+            try {
+                const endpoint = isLoginMode ? '/auth/login' : '/auth/signup';
+                const response = await fetch(`http://localhost:8080${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Authentication failed');
+                }
+
+                // Success! Store token and user plan
+                localStorage.setItem('token', data.token);
+                // localStorage.setItem('plan', data.user.plan); // Store user plan (free | premium)
+                localStorage.setItem("user", JSON.stringify({
+                    email: email, // or data.user.email
+                    premium: data.user.plan === "premium"
+                }));
+                showToast(isLoginMode ? 'Login successful!' : 'Account created successfully!', 'success');
+
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+
+            } catch (error) {
+                showError(error.message);
+                submitBtn.disabled = false;
+                submitText.textContent = isLoginMode ? 'Login' : 'Sign Up';
+            }
+        }
+
+        async function handleForgotSubmit(event) {
+            event.preventDefault();
+            hideError();
+
+            const email = document.getElementById('forgot-email').value.trim();
+            const submitBtn = document.getElementById('forgot-submit-btn');
+            const submitText = document.getElementById('forgot-submit-text');
+
+            if (!email) {
+                showForgotError('Please enter your email');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            const originalText = submitText.textContent;
+            submitText.innerHTML = 'Sending...';
+
+            try {
+                const response = await fetch('http://localhost:8080/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to send reset link');
+                }
+
+                showToast(data.message, 'success');
+                submitText.textContent = 'Link Sent!';
+
+            } catch (error) {
+                showForgotError(error.message);
+                submitBtn.disabled = false;
+                submitText.textContent = originalText;
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WordlyAi - Intelligent Writing Assistant for Paraphrasing and Grammar">
+    <title>WordlyAi | Intelligent Writing Assistant</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS (CDN for demo, MUST be built with CLI for production) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Cashfree SDK -->
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151f32', // Custom deep slate
+                            950: '#020617',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- CORE STYLES --- */
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            /* Respect user motion preferences */
+        }
+
+        /* Accessibility: Skip Link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #3b82f6;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+            border-radius: 0 0 4px 0;
+            transition: top 0.3s;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Glassmorphism (Disabled on mobile via media query below) */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Focus Visible for Keyboard Nav */
+        *:focus-visible {
+            outline: 2px solid #60a5fa;
+            outline-offset: 2px;
+        }
+
+        button:focus-visible,
+        textarea:focus-visible,
+        a:focus-visible {
+            outline: 2px solid #60a5fa;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Diff Highlighting */
+        .diff-added {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+
+        .diff-removed {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            text-decoration: line-through;
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: auto;
+            min-width: 250px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* Background Blobs */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: float 10s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+        }
+
+        /* --- MOBILE & MOTION OPTIMIZATIONS --- */
+
+        /* 1. Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .blob {
+                display: none;
+            }
+        }
+
+        /* 2. Mobile Performance */
+        @media (max-width: 768px) {
+            .blob {
+                display: none;
+            }
+
+            .glass-panel {
+                backdrop-filter: none;
+                background: #0f172a;
+                /* Solid color for performance */
+                border: none;
+            }
+
+            .sidebar-desktop {
+                display: none;
+            }
+
+            .mobile-nav {
+                display: flex;
+            }
+        }
+
+        /* Desktop only */
+        @media (min-width: 769px) {
+            .mobile-nav {
+                display: none;
+            }
+        }
+
+        /* Utility for diff view */
+        .diff-view-output {
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+
+        /* Authentication Modal */
+        .auth-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .auth-modal-backdrop.show {
+            display: flex;
+        }
+
+        .auth-modal {
+            background: #1e293b;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease-out;
+            position: relative;
+        }
+
+        .auth-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .auth-modal-close:hover {
+            color: #f8fafc;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+
+    <!-- Skip to Content Link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Background Blobs (Hidden on mobile) -->
+    <div class="blob bg-indigo-600 w-96 h-96 rounded-full top-0 left-0 blur-3xl opacity-20"></div>
+    <div class="blob bg-purple-600 w-96 h-96 rounded-full bottom-0 right-0 blur-3xl opacity-20 animation-delay-2000">
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal-backdrop" class="auth-modal-backdrop" onclick="hideLoginModal(event)">
+        <div class="auth-modal" onclick="event.stopPropagation()">
+            <button class="auth-modal-close" onclick="hideLoginModal()" aria-label="Close modal">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div
+                    class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
+                    <i data-lucide="lock" class="text-white w-8 h-8"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Login Required</h2>
+                <p class="text-slate-400 text-sm">Please login or create an account to use this feature</p>
+            </div>
+            <div class="space-y-3">
+                <a href="login.html"
+                    class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg transition-all text-center">
+                    Login
+                </a>
+                <a href="login.html"
+                    class="block w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-all text-center">
+                    Sign Up
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-40 bg-slate-900/80 backdrop-blur-md border-b border-white/5 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div
+                        class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i data-lucide="pen-tool" class="text-white w-5 h-5"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">WordlyAi</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Features</a>
+                    <a href="#pricing"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
+                    <!-- Auth Links (Show when logged out) -->
+                    <div id="auth-links" class="flex items-center space-x-8">
+                        <a href="login.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Login</a>
+                        <a href="login.html"
+                            class="bg-white text-slate-900 px-4 py-2 rounded-full text-sm font-bold hover:bg-slate-200 transition-colors">Sign
+                            Up</a>
+                    </div>
+
+                    <!-- User Profile (Show when logged in) -->
+                    <div id="user-profile" class="hidden flex items-center space-x-6">
+                        <span id="premium-badge"
+                            class="hidden bg-gradient-to-r from-amber-200 to-yellow-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide shadow-lg shadow-yellow-500/20">PREMIUM</span>
+                        <button onclick="logout()"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-2">
+                            <span>Logout</span>
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation (Bottom Bar) -->
+    <div
+        class="mobile-nav fixed bottom-0 left-0 w-full bg-slate-900 border-t border-white/10 p-4 z-40 justify-around items-center md:hidden">
+        <button onclick="setMode('paraphrase')" class="flex flex-col items-center gap-1 text-xs text-slate-400"
+            id="mobile-mode-paraphrase">
+            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+            <span>Paraphrase</span>
+        </button>
+        <button onclick="processText()"
+            class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center -mt-8 shadow-lg shadow-blue-600/40 border-4 border-slate-900">
+            <i data-lucide="wand-2" class="w-6 h-6 text-white"></i>
+        </button>
+        <button onclick="setMode('grammar')" class="flex flex-col items-center gap-1 text-xs text-slate-400"
+            id="mobile-mode-grammar">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span>Grammar</span>
+        </button>
+    </div>
+
+    <main id="main-content" class="flex-grow pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full z-10">
+
+        <!-- Hero -->
+        <div class="text-center mb-10 animate-fade-in">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-4">
+                Write Better, <span class="serif italic text-gradient">Instantly.</span>
+            </h1>
+            <p class="text-slate-400 max-w-2xl mx-auto">
+                AI-powered paraphrasing and grammar correction. Secure, fast, and private.
+            </p>
+        </div>
+
+        <!-- App Interface -->
+        <div
+            class="glass-panel rounded-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] shadow-2xl animate-slide-up">
+
+            <!-- Sidebar Controls -->
+            <aside class="sidebar-desktop w-80 bg-slate-900/50 border-r border-white/5 p-6 flex flex-col gap-8">
+
+                <!-- Mode Selection -->
+                <div role="radiogroup" aria-label="Select Mode">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block">Mode</label>
+                    <div class="space-y-2">
+                        <button role="radio" aria-checked="true" tabindex="0" id="mode-paraphrase"
+                            onclick="setMode('paraphrase')"
+                            class="w-full text-left px-4 py-3 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-900/20 flex items-center gap-3 transition-all border border-blue-500">
+                            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                            <div>
+                                <div class="font-medium text-sm">Paraphraser</div>
+                                <div class="text-xs text-blue-200 opacity-80">Rewrite & Restructure</div>
+                            </div>
+                        </button>
+                        <button role="radio" aria-checked="false" tabindex="-1" id="mode-grammar"
+                            onclick="setMode('grammar')"
+                            class="w-full text-left px-4 py-3 rounded-xl bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 flex items-center gap-3 transition-all border border-transparent">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            <div>
+                                <div class="font-medium text-sm">Grammar Check</div>
+                                <div class="text-xs text-slate-500">Fix Errors</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tone Selection -->
+                <div id="tone-controls" class="transition-all duration-300">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block">Tone</label>
+                    <div class="grid grid-cols-2 gap-2" role="group" aria-label="Select Tone">
+                        <button
+                            class="tone-btn px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium border border-blue-500 transition-all"
+                            data-tone="standard" onclick="setTone('standard')">Standard</button>
+                        <button
+                            class="tone-btn px-3 py-2 rounded-lg bg-slate-800 text-slate-400 text-xs font-medium border border-slate-700 hover:border-slate-500 transition-all"
+                            data-tone="fluency" onclick="setTone('fluency')">Fluency</button>
+                        <button
+                            class="tone-btn px-3 py-2 rounded-lg bg-slate-800 text-slate-400 text-xs font-medium border border-slate-700 hover:border-slate-500 transition-all"
+                            data-tone="formal" onclick="setTone('formal')">Formal</button>
+                        <button
+                            class="tone-btn px-3 py-2 rounded-lg bg-slate-800 text-slate-400 text-xs font-medium border border-slate-700 hover:border-slate-500 transition-all"
+                            data-tone="simple" onclick="setTone('simple')">Simple</button>
+                        <button
+                            class="tone-btn col-span-2 px-3 py-2 rounded-lg bg-slate-800 text-slate-400 text-xs font-medium border border-slate-700 hover:border-slate-500 transition-all"
+                            data-tone="creative" onclick="setTone('creative')">✨ Creative</button>
+                    </div>
+                </div>
+
+                <!-- Strength Selection -->
+                <div id="strength-controls" class="transition-all duration-300">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block">Strength</label>
+                    <div class="bg-slate-800/50 p-1 rounded-xl flex gap-1 border border-slate-700/50">
+                        <button onclick="setStrength('light')" id="strength-light"
+                            class="strength-btn flex-1 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white">
+                            Light
+                        </button>
+                        <button onclick="setStrength('medium')" id="strength-medium"
+                            class="strength-btn flex-1 py-2 rounded-lg text-xs font-medium transition-all bg-blue-600 text-white shadow-sm shadow-blue-900/20">
+                            Medium
+                        </button>
+                        <button onclick="setStrength('strong')" id="strength-strong"
+                            class="strength-btn flex-1 py-2 rounded-lg text-xs font-medium transition-all text-slate-400 hover:text-white">
+                            Strong
+                        </button>
+                    </div>
+                    <div class="mt-2 text-[10px] text-slate-500 text-center" id="strength-desc">
+                        Rewrite sentences with noticeable changes
+                    </div>
+                </div>
+
+                <!-- History -->
+                <div class="flex-1 flex flex-col min-h-0">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">History</label>
+                        <button onclick="clearHistory()"
+                            class="text-[10px] text-red-400 hover:text-red-300">Clear</button>
+                    </div>
+                    <div id="history-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                        <div class="text-xs text-slate-600 italic text-center mt-4">No history yet</div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="pt-4 border-t border-white/5">
+                    <div class="flex justify-between text-xs text-slate-500 mb-1">
+                        <span>Words</span>
+                        <span id="word-count" class="text-slate-300 font-mono">0</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500">
+                        <span>Chars</span>
+                        <span id="char-count" class="text-slate-300 font-mono">0</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Editor Area -->
+            <section class="flex-1 flex flex-col bg-slate-900/20 relative">
+
+                <!-- Toolbar -->
+                <div class="h-14 border-b border-white/5 flex items-center justify-between px-4 bg-slate-900/40">
+                    <div class="flex items-center gap-4">
+                        <button onclick="clearText()"
+                            class="text-slate-400 hover:text-red-400 transition-colors p-2 rounded-md hover:bg-white/5"
+                            title="Clear Text">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="pasteText()"
+                            class="text-slate-400 hover:text-blue-400 transition-colors p-2 rounded-md hover:bg-white/5"
+                            title="Paste">
+                            <i data-lucide="clipboard-paste" class="w-4 h-4"></i>
+                        </button>
+                        <div class="h-4 w-px bg-white/10"></div>
+                        <button onclick="toggleDiff()" id="diff-toggle"
+                            class="hidden text-xs font-medium text-slate-400 hover:text-white bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700 transition-colors">
+                            Show Diff
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="status-indicator" class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Ready
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Input/Output Grid -->
+                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-white/5">
+
+                    <!-- Input -->
+                    <div class="flex flex-col relative group">
+                        <label for="input-text"
+                            class="absolute top-3 left-4 text-xs font-bold text-slate-500 uppercase tracking-wider pointer-events-none">Input</label>
+                        <textarea id="input-text"
+                            class="w-full h-full bg-transparent p-4 pt-10 text-slate-300 resize-none focus:outline-none font-light leading-relaxed placeholder-slate-700"
+                            placeholder="Type or paste your text here..." spellcheck="false"></textarea>
+                        <div
+                            class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+                            <span
+                                class="text-[10px] text-slate-600 bg-slate-900 px-2 py-1 rounded border border-slate-800">Ctrl+Enter</span>
+                        </div>
+                        <!-- Word Limit Counter -->
+                        <div id="wordCounter"
+                            class="absolute bottom-4 left-4 text-xs text-slate-500 font-medium bg-slate-900/50 px-2 py-1 rounded backdrop-blur-sm border border-slate-800">
+                            0 / 500 words
+                        </div>
+                    </div>
+
+                    <!-- Output -->
+                    <div class="flex flex-col relative bg-slate-800/10">
+                        <div
+                            class="absolute top-3 left-4 text-xs font-bold text-blue-400 uppercase tracking-wider pointer-events-none flex items-center gap-2 z-10">
+                            <span id="output-label">Output</span>
+                            <div id="loading-spinner" class="hidden">
+                                <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Output Display -->
+                        <div id="output-container"
+                            class="w-full h-full p-4 pt-10 text-slate-200 overflow-y-auto font-light leading-relaxed diff-view-output"
+                            role="status" aria-live="polite" aria-atomic="true">
+                            <div
+                                class="h-full flex flex-col items-center justify-center text-slate-600 space-y-4 opacity-50">
+                                <i data-lucide="sparkles" class="w-10 h-10"></i>
+                                <p class="text-sm">Results appear here</p>
+                            </div>
+                        </div>
+
+                        <!-- Copy Button -->
+                        <button onclick="copyOutput()" id="copy-btn"
+                            class="absolute bottom-4 right-4 p-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg shadow-lg transition-all opacity-0 translate-y-4 pointer-events-none flex items-center gap-2 text-sm font-medium">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="p-4 border-t border-white/5 bg-slate-900/60 flex justify-between items-center">
+                    <div class="text-xs text-slate-500 hidden sm:block">
+                        <span id="usage-stats">Free plan: 4,950 / 5,000 words left today</span>
+                    </div>
+                    <button onclick="processText()" id="process-btn"
+                        class="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2">
+                        <span>Enhance Text</span>
+                        <i data-lucide="wand-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 border-t border-white/5 bg-slate-900/40">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold mb-4">Simple, Transparent Pricing</h2>
+            <p class="text-slate-400 mb-12">Upgrade to unlock unlimited usage and premium features.</p>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- Free Plan -->
+                <div class="p-8 rounded-2xl bg-slate-800/50 border border-white/5 flex flex-col">
+                    <h3 class="text-xl font-semibold mb-2">Free</h3>
+                    <div class="text-3xl font-bold mb-6">₹0<span class="text-sm font-normal text-slate-400">/mo</span>
+                    </div>
+                    <ul class="text-left space-y-3 mb-8 flex-1 text-slate-300 text-sm">
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-blue-500"></i> Limited
+                            Paraphrasing</li>
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-blue-500"></i> Basic
+                            Grammar Check</li>
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-blue-500"></i>
+                            Ad-supported</li>
+                    </ul>
+                    <button disabled
+                        class="w-full py-3 rounded-xl bg-slate-700 text-slate-400 cursor-not-allowed font-medium">Current
+                        Plan</button>
+                </div>
+
+                <!-- Premium Plan -->
+                <div
+                    class="p-8 rounded-2xl bg-gradient-to-b from-blue-900/50 to-slate-900 border border-blue-500/30 flex flex-col relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
+                        POPULAR</div>
+                    <h3 class="text-xl font-semibold mb-2 text-white">Premium</h3>
+                    <div class="text-3xl font-bold mb-6 text-white">₹399<span
+                            class="text-sm font-normal text-slate-400">/mo</span></div>
+                    <ul class="text-left space-y-3 mb-8 flex-1 text-slate-300 text-sm">
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-green-400"></i> Unlimited
+                            Paraphrasing</li>
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-green-400"></i> 100%
+                            Ad-free</li>
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-green-400"></i> Priority
+                            Support</li>
+                        <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-green-400"></i> Advanced
+                            Modes</li>
+                    </ul>
+                    <button onclick="upgradeToPremium()"
+                        class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-colors shadow-lg shadow-blue-900/20">Upgrade
+                        Now</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-white/5 bg-slate-900 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-500 text-sm">&copy; 2023 WordlyAi. All rights reserved.</p>
+            <div class="flex gap-6 text-sm text-slate-500">
+                <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Limit Reached Modal -->
+    <div id="limitModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bg-slate-900 rounded-xl p-6 max-w-sm w-full text-center border border-white/10">
+            <h2 class="text-xl font-semibold text-white mb-2">
+                Daily Limit Reached 🚫
+            </h2>
+            <p class="text-slate-400 text-sm mb-4">
+                You’ve used all your enhancements for today.<br>
+                Come back tomorrow for more ✨
+            </p>
+            <button onclick="closeLimitModal()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">
+                Okay
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const API_BASE_URL = "http://localhost:8080"; // CHANGE THIS TO YOUR PRODUCTION OPTION
+
+        // --- STATE MANAGEMENT ---
+        const state = {
+            mode: 'paraphrase', // 'paraphrase' | 'grammar'
+            tone: 'standard',
+            strength: 'medium', // 'light' | 'medium' | 'strong'
+            isProcessing: false,
+            history: JSON.parse(localStorage.getItem('wordlyai_history') || '[]'),
+            showDiff: false,
+            lastInput: '',
+            lastOutput: ''
+        };
+
+        // --- DOM ELEMENTS ---
+        const els = {
+            input: document.getElementById('input-text'),
+            output: document.getElementById('output-container'),
+            wordCount: document.getElementById('word-count'),
+            charCount: document.getElementById('char-count'),
+            processBtn: document.getElementById('process-btn'),
+            loading: document.getElementById('loading-spinner'),
+            copyBtn: document.getElementById('copy-btn'),
+            outputLabel: document.getElementById('output-label'),
+            toneControls: document.getElementById('tone-controls'),
+            strengthControls: document.getElementById('strength-controls'),
+            diffToggle: document.getElementById('diff-toggle'),
+            historyList: document.getElementById('history-list'),
+            usageStats: document.getElementById('usage-stats')
+        };
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                if (typeof Cashfree !== 'undefined') {
+                    cashfree = Cashfree({
+                        mode: "sandbox" // change to "production" later
+                    });
+                }
+            } catch (e) {
+                console.error("Cashfree init failed", e);
+            }
+
+            lucide.createIcons();
+            renderHistory();
+            updateUsageStats();
+
+            // Keyboard Shortcuts
+            els.input.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') processText();
+            });
+
+            // Debounced Stats (keep for secondary stats)
+            els.input.addEventListener('input', debounce(updateStats, 150));
+
+            // ⚡ Word Limit Enforcement (Immediate)
+            const MAX_WORDS = 500;
+            const wordCounterEl = document.getElementById("wordCounter");
+
+            els.input.addEventListener("input", () => {
+                const text = els.input.value;
+                // Split by whitespace and filter empty strings
+                const words = text.trim().split(/\s+/).filter(Boolean);
+
+                if (words.length > MAX_WORDS) {
+                    // Truncate and update value
+                    // Note: This simple slice might lose exact whitespace format formatting at the cut point but valid for enforcement
+                    els.input.value = words.slice(0, MAX_WORDS).join(" ");
+                    // We need to update user stats immediately after truncation
+                    updateStats();
+                }
+
+                // Update counter display
+                // If words is empty (e.g. empty string), length is 0
+                const currentCount = text.trim() === '' ? 0 : Math.min(words.length, MAX_WORDS);
+
+                wordCounterEl.textContent = `${currentCount} / ${MAX_WORDS} words`;
+
+                // Visual feedback when near limit
+                if (currentCount >= MAX_WORDS) {
+                    wordCounterEl.classList.add('text-red-400', 'border-red-900/50');
+                    wordCounterEl.classList.remove('text-slate-500', 'border-slate-800');
+                } else {
+                    wordCounterEl.classList.remove('text-red-400', 'border-red-900/50');
+                    wordCounterEl.classList.add('text-slate-500', 'border-slate-800');
+                }
+            });
+        });
+
+        // --- UTILITIES ---
+
+        function debounce(fn, delay) {
+            let t;
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon = 'info';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'error') icon = 'alert-circle';
+
+            toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Trigger animation
+            requestAnimationFrame(() => toast.classList.add('show'));
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function updateStats() {
+            const text = els.input.value;
+            els.wordCount.innerText = text.trim() ? text.trim().split(/\s+/).length : 0;
+            els.charCount.innerText = text.length;
+
+            // Toggle copy button visibility
+            if (text.length > 0) {
+                els.copyBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            } else {
+                els.copyBtn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                resetOutput();
+            }
+        }
+
+        function updateUsageStats() {
+            // Simulate usage tracking
+            const used = Math.floor(Math.random() * 1000);
+            els.usageStats.innerText = `Free plan: ${5000 - used} / 5000 words left today`;
+        }
+
+        // --- CORE LOGIC ---
+
+        function setMode(mode) {
+            state.mode = mode;
+
+            // Update UI Buttons
+            const pBtn = document.getElementById('mode-paraphrase');
+            const gBtn = document.getElementById('mode-grammar');
+            const mpBtn = document.getElementById('mobile-mode-paraphrase');
+            const mgBtn = document.getElementById('mobile-mode-grammar');
+
+            const activeClass = ['bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/20', 'border-blue-500'];
+            const inactiveClass = ['bg-slate-800', 'text-slate-400', 'border-transparent'];
+
+            if (mode === 'paraphrase') {
+                pBtn.classList.add(...activeClass);
+                pBtn.classList.remove(...inactiveClass);
+                pBtn.setAttribute('aria-checked', 'true');
+
+                gBtn.classList.remove(...activeClass);
+                gBtn.classList.add(...inactiveClass);
+                gBtn.setAttribute('aria-checked', 'false');
+
+                // Mobile
+                if (mpBtn) { mpBtn.classList.add('text-blue-400'); mpBtn.classList.remove('text-slate-400'); }
+                if (mgBtn) { mgBtn.classList.remove('text-blue-400'); mgBtn.classList.add('text-slate-400'); }
+
+                els.toneControls.style.opacity = '1';
+                els.toneControls.style.pointerEvents = 'auto';
+                els.strengthControls.style.opacity = '1';
+                els.strengthControls.style.pointerEvents = 'auto';
+                els.outputLabel.innerText = "Paraphrased Text";
+            } else {
+                gBtn.classList.add(...activeClass);
+                gBtn.classList.remove(...inactiveClass);
+                gBtn.setAttribute('aria-checked', 'true');
+
+                pBtn.classList.remove(...activeClass);
+                pBtn.classList.add(...inactiveClass);
+                pBtn.setAttribute('aria-checked', 'false');
+
+                // Mobile
+                if (mgBtn) { mgBtn.classList.add('text-blue-400'); mgBtn.classList.remove('text-slate-400'); }
+                if (mpBtn) { mpBtn.classList.remove('text-blue-400'); mpBtn.classList.add('text-slate-400'); }
+
+                els.toneControls.style.opacity = '0.3';
+                els.toneControls.style.pointerEvents = 'none';
+                els.strengthControls.style.opacity = '0.3';
+                els.strengthControls.style.pointerEvents = 'none';
+                els.outputLabel.innerText = "Corrected Text";
+            }
+            resetOutput();
+        }
+
+
+
+        function setStrength(strength) {
+            state.strength = strength;
+
+            // Update UI
+            document.querySelectorAll('.strength-btn').forEach(btn => {
+                if (btn.id === `strength-${strength}`) {
+                    btn.classList.add('bg-blue-600', 'text-white', 'shadow-sm', 'shadow-blue-900/20');
+                    btn.classList.remove('text-slate-400', 'hover:text-white', 'bg-slate-800/0');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white', 'shadow-sm', 'shadow-blue-900/20');
+                    btn.classList.add('text-slate-400', 'hover:text-white', 'bg-slate-800/0');
+                }
+            });
+
+            // Update Description
+            const descEl = document.getElementById('strength-desc');
+            if (strength === 'light') descEl.innerText = "Lightly improve wording and clarity";
+            if (strength === 'medium') descEl.innerText = "Rewrite sentences with noticeable changes";
+            if (strength === 'strong') descEl.innerText = "Completely restructure sentences and phrasing";
+        }
+
+        function setTone(tone) {
+            state.tone = tone;
+            document.querySelectorAll('.tone-btn').forEach(btn => {
+                if (btn.dataset.tone === tone) {
+                    btn.classList.add('bg-blue-600', 'text-white', 'border-blue-500');
+                    btn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-500');
+                    btn.classList.add('bg-slate-800', 'text-slate-400', 'border-slate-700');
+                }
+            });
+        }
+
+        function resetOutput() {
+            state.showDiff = false;
+            els.diffToggle.classList.add('hidden');
+            els.output.innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center text-slate-600 space-y-4 opacity-50">
+                    <i data-lucide="sparkles" class="w-10 h-10"></i>
+                    <p class="text-sm">Results appear here</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function clearText() {
+            els.input.value = '';
+            els.input.focus();
+            updateStats();
+        }
+
+        // --- PAYMENT LOGIC ---
+
+        let cashfree = null;
+
+        async function upgradeToPremium() {
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                showLoginModal();
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/payment/create-order`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error("Backend error:", text);
+                    showToast("Payment Error", "error");
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (!data.payment_session_id) {
+                    showToast("Failed to start payment: " + (data.error || "Unknown error"), "error");
+                    return;
+                }
+
+                cashfree.checkout({
+                    paymentSessionId: data.payment_session_id,
+                    redirectTarget: "_modal"
+                });
+
+                // Save order_id for manual verification (TESTING ONLY)
+                if (data.order_id) {
+                    localStorage.setItem("current_order_id", data.order_id);
+                }
+
+                // Listen for focus to refresh user status after payment modal likely closes
+                window.addEventListener('focus', refreshUser, { once: true });
+
+            } catch (err) {
+                console.error(err);
+                showToast("Payment Error", "error");
+            }
+        }
+
+        async function refreshUser() {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            // Manual Verification Step (Test Only)
+            const currentOrderId = localStorage.getItem("current_order_id");
+            if (currentOrderId) {
+                try {
+                    console.log("Verifying order:", currentOrderId);
+                    await fetch(`${API_BASE_URL}/payment/verify-order`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ order_id: currentOrderId })
+                    });
+                    localStorage.removeItem("current_order_id"); // Clear after check
+                } catch (e) {
+                    console.error("Verification failed", e);
+                }
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/protected`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const data = await res.json();
+
+                if (data.user) {
+                    // Update user object in localStorage
+                    localStorage.setItem("user", JSON.stringify({
+                        email: data.user.email,
+                        premium: data.user.plan === "premium"
+                    }));
+
+                    if (data.user.plan === "premium") {
+                        showToast("🎉 Upgraded to Premium! Refreshing...", "success");
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to refresh user", err);
+            }
+        }
+
+        async function pasteText() {
+            try {
+                const text = await navigator.clipboard.readText();
+                els.input.value = text;
+                updateStats();
+                showToast('Text pasted from clipboard', 'success');
+            } catch (err) {
+                showToast('Failed to access clipboard', 'error');
+            }
+        }
+
+        function copyOutput() {
+            const text = els.output.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!', 'success');
+            }).catch(() => {
+                showToast('Failed to copy', 'error');
+            });
+        }
+
+        function toggleDiff() {
+            state.showDiff = !state.showDiff;
+            els.diffToggle.innerText = state.showDiff ? 'Hide Diff' : 'Show Diff';
+            els.diffToggle.classList.toggle('bg-slate-700', state.showDiff);
+
+            if (state.showDiff) {
+                renderDiff(state.lastInput, state.lastOutput);
+            } else {
+                els.output.innerText = state.lastOutput;
+            }
+        }
+
+        // --- HISTORY SYSTEM ---
+
+        function addToHistory(input, output, mode) {
+            const item = {
+                id: Date.now(),
+                preview: input.substring(0, 40) + (input.length > 40 ? '...' : ''),
+                input,
+                output,
+                mode,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            state.history.unshift(item);
+            if (state.history.length > 10) state.history.pop();
+            localStorage.setItem('wordlyai_history', JSON.stringify(state.history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            if (state.history.length === 0) {
+                els.historyList.innerHTML = '<div class="text-xs text-slate-600 italic text-center mt-4">No history yet</div>';
+                return;
+            }
+
+            els.historyList.innerHTML = state.history.map(item => `
+                <div onclick="restoreHistory(${item.id})" class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 cursor-pointer transition-colors group">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[10px] uppercase font-bold text-blue-400">${item.mode}</span>
+                        <span class="text-[10px] text-slate-600">${item.timestamp}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 truncate group-hover:text-white">${item.preview}</p>
+                </div>
+            `).join('');
+        }
+
+        function restoreHistory(id) {
+            const item = state.history.find(h => h.id === id);
+            if (item) {
+                els.input.value = item.input;
+                state.lastOutput = item.output;
+                state.lastInput = item.input;
+                updateStats();
+
+                // Display output
+                els.output.innerText = item.output;
+                els.copyBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                els.diffToggle.classList.remove('hidden');
+
+                showToast('Restored from history', 'info');
+            }
+        }
+
+        function clearHistory() {
+            state.history = [];
+            localStorage.removeItem('wordlyai_history');
+            renderHistory();
+            showToast('History cleared', 'info');
+        }
+
+        // --- AI LOGIC (SIMULATED) ---
+
+        // Enhanced synonym logic
+        const synonyms = {
+            "good": ["excellent", "superb", "fine", "great"],
+            "bad": ["poor", "inferior", "inadequate"],
+            "happy": ["joyful", "content", "pleased"],
+            "sad": ["unhappy", "sorrowful", "dejected"],
+            "big": ["large", "huge", "enormous"],
+            "small": ["tiny", "little", "compact"],
+            "fast": ["quick", "rapid", "swift"],
+            "use": ["utilize", "employ", "apply"],
+            "make": ["create", "produce", "construct"],
+            "get": ["obtain", "acquire", "receive"],
+            "help": ["assist", "aid", "support"],
+            "start": ["begin", "commence", "initiate"],
+            "think": ["believe", "consider", "deem"],
+            "say": ["state", "declare", "remark"],
+            "go": ["proceed", "move", "travel"],
+            "see": ["observe", "view", "notice"]
+        };
+
+        function splitWordsPreserve(text) {
+            return text.match(/\w+([.,!?;:]|\w+)*|\s+|[^\w\s]/g) || [];
+        }
+
+        function isCapitalized(s) { return /^[A-Z]/.test(s); }
+        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+
+        function simulateParaphrase(text, tone) {
+            const tokens = splitWordsPreserve(text);
+            const out = tokens.map(tok => {
+                if (/^\w+$/.test(tok)) {
+                    const key = tok.toLowerCase();
+                    if (synonyms[key]) {
+                        const synList = synonyms[key];
+                        const syn = synList[Math.floor(Math.random() * synList.length)];
+                        return isCapitalized(tok) ? capitalize(syn) : syn;
+                    }
+                }
+                return tok;
+            }).join('');
+
+            let result = out.replace(/\s+/g, ' ').trim();
+
+            if (tone === 'formal') {
+                result = result.replace(/\b(good)\b/gi, "advantageous");
+                result = result.replace(/\b(bad)\b/gi, "detrimental");
+                result = result.replace(/\b(get)\b/gi, "obtain");
+                result = result.replace(/\b(help)\b/gi, "assist");
+                result = "It is important to note that " + result.charAt(0).toLowerCase() + result.slice(1);
+            } else if (tone === 'simple') {
+                result = result.replace(/\b(utilize|employ)\b/gi, "use");
+                result = result.replace(/\b(assistance)\b/gi, "help");
+                result = result.replace(/\b(attempt)\b/gi, "try");
+                result = result.replace(/\b(commence)\b/gi, "start");
+            }
+            return result;
+        }
+
+        function ensureTerminalPunctuation(str) {
+            const trimmed = str.trim();
+            if (!trimmed) return trimmed;
+            return /[.!?]$/.test(trimmed) ? trimmed : trimmed + '.';
+        }
+
+        function simulateGrammarCheck(text) {
+            let corrected = text;
+            // Simple rule-based corrections
+            const rules = [
+                { regex: /\b(dont|don't)\b/gi, fix: "do not" },
+                { regex: /\b(cant|can't)\b/gi, fix: "cannot" },
+                { regex: /\b(wont|won't)\b/gi, fix: "will not" },
+                { regex: /\b(im|i'm)\b/gi, fix: "I am" },
+                { regex: /\b(i)\b/g, fix: "I" }, // Capitalize standalone i
+            ];
+
+            rules.forEach(rule => {
+                corrected = corrected.replace(rule.regex, rule.fix);
+            });
+
+            return ensureTerminalPunctuation(corrected);
+        }
+
+        function renderDiff(oldText, newText) {
+            // Simple word diff visualization
+            const oldWords = oldText.split(' ');
+            const newWords = newText.split(' ');
+            let html = '';
+
+            // Very basic diff logic for demo
+            // In production, use a library like 'diff-match-patch'
+            let i = 0, j = 0;
+            while (i < oldWords.length || j < newWords.length) {
+                if (i >= oldWords.length) {
+                    html += `<span class="diff-added">${newWords[j]} </span>`;
+                    j++;
+                } else if (j >= newWords.length) {
+                    html += `<span class="diff-removed">${oldWords[i]} </span>`;
+                    i++;
+                } else if (oldWords[i] === newWords[j]) {
+                    html += oldWords[i] + ' ';
+                    i++; j++;
+                } else {
+                    html += `<span class="diff-removed">${oldWords[i]}</span> <span class="diff-added">${newWords[j]}</span> `;
+                    i++; j++;
+                }
+            }
+            els.output.innerHTML = html;
+        }
+
+        // --- AUTHENTICATION ---
+
+        function isUserLoggedIn() {
+            const token = localStorage.getItem('token');
+            return token !== null && token !== '';
+        }
+
+        // Alias for consistency
+        function isLoggedIn() {
+            const user = localStorage.getItem("user");
+            return !!localStorage.getItem("token") && !!user;
+        }
+
+
+
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            showToast("Logged out successfully", "info");
+            updateAuthUI();
+            // Optional: Redirect to home if on a protected page
+            // window.location.href = "index.html";
+        }
+
+        function updateAuthUI() {
+            const authLinks = document.getElementById("auth-links");
+            const userProfile = document.getElementById("user-profile");
+            const premiumBadge = document.getElementById("premium-badge");
+
+            if (isLoggedIn()) {
+                if (authLinks) authLinks.classList.add("hidden");
+                if (userProfile) userProfile.classList.remove("hidden");
+                if (userProfile) userProfile.classList.add("flex");
+
+                if (isPremiumUser()) {
+                    if (premiumBadge) premiumBadge.classList.remove("hidden");
+                } else {
+                    if (premiumBadge) premiumBadge.classList.add("hidden");
+                }
+            } else {
+                if (authLinks) authLinks.classList.remove("hidden");
+                if (userProfile) userProfile.classList.add("hidden");
+                if (userProfile) userProfile.classList.remove("flex");
+            }
+            lucide.createIcons();
+        }
+
+        // Initialize UI on load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAuthUI();
+            lucide.createIcons();
+        });
+
+        function isPremiumUser() {
+            try {
+                const user = JSON.parse(localStorage.getItem("user"));
+                return user && user.premium === true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function redirectToUpgrade(reason) {
+            showToast("Upgrade to Premium to continue", "info");
+            // Redirect to pricing section
+            // We use standard hash which the browser will scroll to if the ID exists
+            window.location.hash = "pricing";
+        }
+
+        function showLoginModal() {
+            const modal = document.getElementById('auth-modal-backdrop');
+            modal.classList.add('show');
+            lucide.createIcons();
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        function showLimitReachedModal() {
+            document.getElementById("limitModal").classList.remove("hidden");
+        }
+
+        function closeLimitModal() {
+            document.getElementById("limitModal").classList.add("hidden");
+        }
+
+        function disableEnhanceButton() {
+            const btn = document.getElementById("process-btn");
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Daily Limit Reached";
+                // Optionally add a class to make it look disabled if needed,
+                // but 'disabled' attribute usually handles it.
+                btn.classList.add("opacity-50", "cursor-not-allowed");
+            }
+        }
+
+        function hideLoginModal(event) {
+            // Only close if clicking backdrop or close button, not the modal content
+            if (event && event.target.classList.contains('auth-modal')) {
+                return;
+            }
+            const modal = document.getElementById('auth-modal-backdrop');
+            modal.classList.remove('show');
+            // Restore body scroll
+            document.body.style.overflow = '';
+        }
+
+        // --- MAIN PROCESSING ---
+
+        async function processText() {
+            let limitReached = false;
+            const text = els.input.value.trim();
+
+            if (!text) {
+                showToast('Please enter some text first', 'error');
+                return;
+            }
+
+            // 🔐 Step 1: Login check
+            if (!isLoggedIn()) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            // 💳 Step 2: Premium check
+            if (!isPremiumUser()) {
+                redirectToUpgrade("premium_required");
+                return;
+            }
+
+            if (state.isProcessing) return;
+
+            // UI loading state
+            state.isProcessing = true;
+            els.processBtn.disabled = true;
+            els.processBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...`;
+            els.loading.classList.remove('hidden');
+            els.output.innerHTML = ''; // Clear previous
+
+            try {
+                // Use correct endpoint (no /api prefix based on server config)
+                // Full path: http://localhost:3000/api/paraphrase
+                const res = await fetch(`${API_BASE_URL}/api/paraphrase`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    },
+                    body: JSON.stringify({
+                        text,
+                        mode: state.mode,
+                        tone: state.tone,
+                        strength: state.strength
+                    })
+                });
+
+                const data = await res.json();
+
+                // 🔐 NOT LOGGED IN (401)
+                if (res.status === 401) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                    window.location.href = "login.html";
+                    showToast('Session expired. Please login again.', 'error');
+                    return;
+                }
+
+                // 💳 FREE USER → UPGRADE (403)
+                if (res.status === 403) {
+                    // Check specific error code if needed, but 403 generally means upgrade here
+                    redirectToUpgrade("upgrade_required");
+                    return;
+                }
+
+                // 🚫 DAILY LIMIT REACHED (429)
+                if (res.status === 429) {
+                    showLimitReachedModal();
+                    disableEnhanceButton();
+                    limitReached = true;
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(data.message || data.error || "Something went wrong");
+                }
+
+                // ✅ SUCCESS
+                const result = data.result || data.output || data.text;
+                state.lastInput = text;
+                state.lastOutput = result;
+
+                // Display output
+                els.output.innerText = result;
+
+                // Show Diff Toggle
+                els.diffToggle.classList.remove('hidden');
+
+                // Show copy button
+                els.copyBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+
+                // Add to history
+                addToHistory(text, result, state.mode);
+
+                showToast('Text enhanced successfully!', 'success');
+
+            } catch (error) {
+                console.error('Processing error:', error);
+                showToast(error.message || 'Failed to process text. Please try again.', 'error');
+                resetOutput();
+            } finally {
+                if (limitReached) return;
+                state.isProcessing = false;
+                els.processBtn.disabled = false;
+                els.processBtn.innerHTML = `<span>Enhance Text</span><i data-lucide="wand-2" class="w-4 h-4"></i>`;
+                els.loading.classList.add('hidden');
+                lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+
+</html>
