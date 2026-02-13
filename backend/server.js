@@ -13,7 +13,9 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: "*"
+}));
 // Webhook parsing might need strict JSON or raw body depending on signature verification.
 // For now, express.json() is likely enough as Cashfree sends JSON.
 app.use(express.json());
