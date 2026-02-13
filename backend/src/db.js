@@ -6,7 +6,9 @@ dotenv.config();
 const connectionString = process.env.DATABASE_URL;
 
 const sql = postgres(connectionString, {
-    ssl: 'require'
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 export default sql;
