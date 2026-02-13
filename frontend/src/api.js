@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://paraphraser-backend-production.up.railway.app",
 });
 
 API.interceptors.request.use((req) => {
