@@ -19,8 +19,8 @@ export const createOrder = async (req, res) => {
                 customer_phone: "9999999999"
             },
             order_meta: {
-                return_url: "http://localhost:3000/dashboard.html?order_id={order_id}",
-                notify_url: "https://api.wordlyai.pro/api/cashfree/webhook"
+                return_url: `${process.env.FRONTEND_URL}/dashboard.html?order_id={order_id}`,
+                notify_url: `${process.env.API_BASE_URL}/api/cashfree/webhook`
             }
         };
 
