@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WordlyAi Terms of Service">
+    <title>Terms of Service | WordlyAi</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .prose h2 {
+            color: #fff;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .prose p {
+            margin-bottom: 1rem;
+            color: #94a3b8;
+            line-height: 1.7;
+        }
+
+        .prose ul {
+            margin-bottom: 1rem;
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #94a3b8;
+        }
+
+        .prose li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+
+    <nav class="fixed w-full z-40 bg-slate-900/80 backdrop-blur-md border-b border-white/5 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <div
+                        class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i data-lucide="pen-tool" class="text-white w-5 h-5"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">WordlyAi</span>
+                </a>
+                <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">←
+                    Back to Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
+        <h1 class="text-4xl font-bold mb-8">Terms of Service</h1>
+        <div class="prose max-w-none">
+            <p>Last updated: February 13, 2026</p>
+
+            <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the WordlyAi
+                website (the "Service") operated by WordlyAi ("us", "we", or "our").</p>
+
+            <h2>1. Accounts</h2>
+            <p>When you create an account with us, you must provide us information that is accurate, complete, and
+                current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate
+                termination of your account on our Service.</p>
+            <p>You are responsible for safeguarding the password that you use to access the Service and for any
+                activities or actions under your password, whether your password is with our Service or a third-party
+                service.</p>
+
+            <h2>2. Intellectual Property</h2>
+            <p>The Service and its original content, features and functionality are and will remain the exclusive
+                property of WordlyAi and its licensors. The Service is protected by copyright, trademark, and other laws
+                of both the Country and foreign countries.</p>
+
+            <h2>3. Usage Restrictions</h2>
+            <p>You agree not to use the Service:</p>
+            <ul>
+                <li>In any way that violates any applicable national or international law or regulation.</li>
+                <li>For the purpose of exploiting, harming, or attempting to exploit or harm minors in any way.</li>
+                <li>To transmit, or procure the sending of, any advertising or promotional material, including any "junk
+                    mail", "chain letter" or "spam" or any other similar solicitation.</li>
+            </ul>
+
+            <h2>4. Termination</h2>
+            <p>We may terminate or suspend access to our Service immediately, without prior notice or liability, for any
+                reason whatsoever, including without limitation if you breach the Terms.</p>
+            <p>All provisions of the Terms which by their nature should survive termination shall survive termination,
+                including, without limitation, ownership provisions, warranty disclaimers, indemnity and limitations of
+                liability.</p>
+
+            <h2>5. Governing Law</h2>
+            <p>These Terms shall be governed and construed in accordance with the laws of India, without regard to its
+                conflict of law provisions.</p>
+
+            <h2>6. Changes</h2>
+            <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision
+                is material we will try to provide at least 30 days notice prior to any new terms taking effect. What
+                constitutes a material change will be determined at our sole discretion.</p>
+
+            <h2>7. Contact Us</h2>
+            <p>If you have any questions about these Terms, please contact us.</p>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/5 bg-slate-900 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-500 text-sm">&copy; 2026 WordlyAi. All rights reserved.</p>
+            <div class="flex gap-6 text-sm text-slate-500">
+                <a href="privacy.html" class="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="terms.html" class="hover:text-white transition-colors text-white">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
