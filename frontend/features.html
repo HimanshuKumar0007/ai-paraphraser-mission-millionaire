@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Explore the powerful features of WordlyAi - Paraphrasing, Grammar Check, and more.">
+    <title>Features | WordlyAi</title>
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151f32',
+                            950: '#020617',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Background Blobs */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: float 10s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(96, 165, 250, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white overflow-x-hidden">
+
+    <!-- Background Blobs -->
+    <div class="blob bg-indigo-600 w-96 h-96 rounded-full top-0 left-0 blur-3xl opacity-20"></div>
+    <div class="blob bg-purple-600 w-96 h-96 rounded-full bottom-0 right-0 blur-3xl opacity-20 animation-delay-2000">
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-40 bg-slate-900/80 backdrop-blur-md border-b border-white/5 top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <div
+                        class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i data-lucide="pen-tool" class="text-white w-5 h-5"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-white">WordlyAi</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="features.html" class="text-sm font-medium text-white transition-colors">Features</a>
+                    <a href="index.html#pricing"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
+
+                    <div id="auth-links" class="flex items-center space-x-8">
+                        <a href="login.html"
+                            class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Login</a>
+                        <a href="login.html"
+                            class="bg-white text-slate-900 px-4 py-2 rounded-full text-sm font-bold hover:bg-slate-200 transition-colors">Sign
+                            Up</a>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="text-slate-300 hover:text-white p-2">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-slate-900 border-t border-white/5 animate-fade-in absolute w-full left-0 top-16 shadow-xl z-50">
+            <div class="px-4 py-6 space-y-4">
+                <a href="features.html" class="block text-white font-medium py-2">Features</a>
+                <a href="index.html#pricing" class="block text-slate-300 hover:text-white font-medium py-2">Pricing</a>
+
+                <div id="mobile-auth-links" class="pt-4 border-t border-white/5 space-y-3">
+                    <a href="login.html"
+                        class="block w-full bg-slate-800 text-center py-3 rounded-lg text-slate-200 font-medium hover:bg-slate-700">Login</a>
+                    <a href="login.html"
+                        class="block w-full bg-blue-600 text-center py-3 rounded-lg text-white font-bold hover:bg-blue-500">Sign
+                        Up</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full z-10">
+
+        <!-- Hero -->
+        <div class="text-center mb-20 animate-fade-in">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+                Unlock Your <span class="serif italic text-gradient">Potential</span>
+            </h1>
+            <p class="text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed">
+                Discover the tools that make WordlyAi the ultimate writing assistant. From intelligent paraphrasing to
+                instant grammar correction.
+            </p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 animate-slide-up">
+
+            <!-- Feature 1 -->
+            <div class="glass-card p-8 rounded-2xl">
+                <div class="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-white">Smart Paraphrasing</h3>
+                <p class="text-slate-400 leading-relaxed">
+                    Instantly rewrite sentences and paragraphs while maintaining the original meaning. Choose from
+                    multiple modes to fit your needs.
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="glass-card p-8 rounded-2xl">
+                <div class="w-12 h-12 bg-green-600/20 text-green-400 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-white">Grammar Check</h3>
+                <p class="text-slate-400 leading-relaxed">
+                    Eliminate errors with our advanced grammar checker. Fix punctuation, spelling, and structural issues
+                    in seconds.
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="glass-card p-8 rounded-2xl">
+                <div
+                    class="w-12 h-12 bg-purple-600/20 text-purple-400 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="sliders" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-white">Tone Adjustment</h3>
+                <p class="text-slate-400 leading-relaxed">
+                    Customize the tone of your writing. Switch between Standard, Formal, Fluency, Simple, and Creative
+                    modes effortlessly.
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="glass-card p-8 rounded-2xl">
+                <div class="w-12 h-12 bg-amber-600/20 text-amber-400 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-white">Lightning Fast</h3>
+                <p class="text-slate-400 leading-relaxed">
+                    Experience real-time processing. Our optimized AI engine delivers results in milliseconds, so you
+                    never break your flow.
+                </p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="glass-card p-8 rounded-2xl">
+                <div class="w-12 h-12 bg-pink-600/20 text-pink-400 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="history" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-white">History Tracking</h3>
+                <p class="text-slate-400 leading-relaxed">
+                    Never lose your work. Access your paraphrase history, restore previous versions, and clear it
+                    whenever you want.
+                </p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="glass-card p-8 rounded-2xl">
+                <div
+                    class="w-12 h-12 bg-indigo-600/20 text-indigo-400 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="shield" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-white">Secure & Private</h3>
+                <p class="text-slate-400 leading-relaxed">
+                    Your data is safe with us. We use enterprise-grade encryption and specific privacy policies to
+                    ensure your writing remains yours.
+                </p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 bg-slate-900 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-500 text-sm">&copy; 2026 WordlyAi. All rights reserved.</p>
+            <div class="flex gap-6 text-sm text-slate-500">
+                <a href="privacy.html" class="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="terms.html" class="hover:text-white transition-colors">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Auth Logic (Simple Check for Navbar)
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            const authLinks = document.getElementById("auth-links");
+            const mobileAuthLinks = document.getElementById("mobile-auth-links");
+
+            if (token) {
+                // Determine if we should show a logout button or just hide login
+                // For this page, we'll just hide login/signup if logged in to keep it simple
+                if (authLinks) authLinks.innerHTML = '<button onclick="logout()" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Logout</button>';
+                if (mobileAuthLinks) mobileAuthLinks.innerHTML = '<button onclick="logout()" class="block w-full bg-slate-800 text-center py-3 rounded-lg text-red-400 font-medium hover:bg-slate-700">Logout</button>';
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.reload();
+        }
+    </script>
+</body>
+
+</html>

@@ -14,7 +14,14 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-    origin: "*"
+    origin: [
+        "https://ai-paraphraser-mission-millionaire.pages.dev",
+        "https://wordlyai.pages.dev",
+        "http://localhost:5500",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ],
+    credentials: true
 }));
 // Webhook parsing might need strict JSON or raw body depending on signature verification.
 // For now, express.json() is likely enough as Cashfree sends JSON.
@@ -23,6 +30,10 @@ app.use(express.json());
 app.use((req, res, next) => {
     console.log(`[REQUEST] ${req.method} ${req.url}`);
     next();
+});
+
+app.get("/health", (req, res) => {
+    res.json({ status: "OK" });
 });
 
 app.use("/auth", authRoutes);

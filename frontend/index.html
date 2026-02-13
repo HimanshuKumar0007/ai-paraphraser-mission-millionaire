@@ -250,9 +250,7 @@
                 border: none;
             }
 
-            .sidebar-desktop {
-                display: none;
-            }
+            /* .sidebar-desktop styles removed to allow responsive design */
 
             .mobile-nav {
                 display: flex;
@@ -319,7 +317,7 @@
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white overflow-x-hidden">
 
     <!-- Skip to Content Link -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -370,11 +368,14 @@
                     </div>
                     <span class="text-xl font-bold tracking-tight">WordlyAi</span>
                 </div>
+
+                <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#features"
+                    <a href="features.html"
                         class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Features</a>
                     <a href="#pricing"
                         class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
+
                     <!-- Auth Links (Show when logged out) -->
                     <div id="auth-links" class="flex items-center space-x-8">
                         <a href="login.html"
@@ -394,6 +395,47 @@
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="text-slate-300 hover:text-white p-2">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-slate-900 border-t border-white/5 animate-fade-in absolute w-full left-0 top-16 shadow-xl z-50">
+            <div class="px-4 py-6 space-y-4">
+                <a href="features.html" onclick="toggleMobileMenu()"
+                    class="block text-slate-300 hover:text-white font-medium py-2">Features</a>
+                <a href="#pricing" onclick="toggleMobileMenu()"
+                    class="block text-slate-300 hover:text-white font-medium py-2">Pricing</a>
+
+                <!-- Mobile Auth Links -->
+                <div id="mobile-auth-links" class="pt-4 border-t border-white/5 space-y-3">
+                    <a href="login.html"
+                        class="block w-full bg-slate-800 text-center py-3 rounded-lg text-slate-200 font-medium hover:bg-slate-700">Login</a>
+                    <a href="login.html"
+                        class="block w-full bg-blue-600 text-center py-3 rounded-lg text-white font-bold hover:bg-blue-500">Sign
+                        Up</a>
+                </div>
+
+                <!-- Mobile User Profile -->
+                <div id="mobile-user-profile" class="hidden pt-4 border-t border-white/5 space-y-3">
+                    <div class="flex items-center justify-between px-2 pb-2">
+                        <span class="text-slate-400 text-sm">Account Status</span>
+                        <span id="mobile-premium-badge"
+                            class="hidden bg-gradient-to-r from-amber-200 to-yellow-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">PREMIUM</span>
+                    </div>
+                    <button onclick="logout()"
+                        class="w-full bg-slate-800 text-center py-3 rounded-lg text-red-400 font-medium hover:bg-slate-700 hover:text-red-300 flex items-center justify-center gap-2">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Logout</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -432,10 +474,11 @@
 
         <!-- App Interface -->
         <div
-            class="glass-panel rounded-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] shadow-2xl animate-slide-up">
+            class="glass-panel rounded-2xl overflow-hidden flex flex-col-reverse md:flex-row min-h-[600px] shadow-2xl animate-slide-up">
 
             <!-- Sidebar Controls -->
-            <aside class="sidebar-desktop w-80 bg-slate-900/50 border-r border-white/5 p-6 flex flex-col gap-8">
+            <aside
+                class="sidebar-desktop w-full md:w-80 bg-slate-900/50 border-t md:border-t-0 md:border-r border-white/5 p-6 flex flex-col gap-8">
 
                 <!-- Mode Selection -->
                 <div role="radiogroup" aria-label="Select Mode">
@@ -1292,25 +1335,47 @@
             // window.location.href = "index.html";
         }
 
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
         function updateAuthUI() {
             const authLinks = document.getElementById("auth-links");
             const userProfile = document.getElementById("user-profile");
             const premiumBadge = document.getElementById("premium-badge");
 
+            // Mobile elements
+            const mobileAuthLinks = document.getElementById("mobile-auth-links");
+            const mobileUserProfile = document.getElementById("mobile-user-profile");
+            const mobilePremiumBadge = document.getElementById("mobile-premium-badge");
+
             if (isLoggedIn()) {
+                // Desktop
                 if (authLinks) authLinks.classList.add("hidden");
                 if (userProfile) userProfile.classList.remove("hidden");
                 if (userProfile) userProfile.classList.add("flex");
 
+                // Mobile
+                if (mobileAuthLinks) mobileAuthLinks.classList.add("hidden");
+                if (mobileUserProfile) mobileUserProfile.classList.remove("hidden");
+
                 if (isPremiumUser()) {
                     if (premiumBadge) premiumBadge.classList.remove("hidden");
+                    if (mobilePremiumBadge) mobilePremiumBadge.classList.remove("hidden");
                 } else {
                     if (premiumBadge) premiumBadge.classList.add("hidden");
+                    if (mobilePremiumBadge) mobilePremiumBadge.classList.add("hidden");
                 }
             } else {
+                // Desktop
                 if (authLinks) authLinks.classList.remove("hidden");
                 if (userProfile) userProfile.classList.add("hidden");
                 if (userProfile) userProfile.classList.remove("flex");
+
+                // Mobile
+                if (mobileAuthLinks) mobileAuthLinks.classList.remove("hidden");
+                if (mobileUserProfile) mobileUserProfile.classList.add("hidden");
             }
             lucide.createIcons();
         }
