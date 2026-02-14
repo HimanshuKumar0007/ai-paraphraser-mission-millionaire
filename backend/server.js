@@ -18,11 +18,9 @@ app.disable('x-powered-by');
 
 app.use(cors({
     origin: [
-        "https://ai-paraphraser-mission-millionaire.pages.dev",
-        "https://wordlyai.pages.dev",
-        "http://localhost:5500",
-        "http://localhost:3000",
-        "http://localhost:5173"
+        "https://wordlyai.pro",
+        "https://www.wordlyai.pro",
+        "https://ai-paraphraser-mission-millionaire.pages.dev"
     ],
     credentials: true
 }));

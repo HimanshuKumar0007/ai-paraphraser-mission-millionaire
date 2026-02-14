@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://paraphraser-backend-production.up.railway.app",
+  baseURL: "https://ai-paraphraser-mission-millionaire-production.up.railway.app",
 });
 
 API.interceptors.request.use((req) => {
