@@ -17,11 +17,7 @@ const app = express();
 app.disable('x-powered-by');
 
 app.use(cors({
-    origin: [
-        "https://wordlyai.pro",
-        "https://www.wordlyai.pro",
-        "https://ai-paraphraser-mission-millionaire.pages.dev"
-    ],
+    origin: ["https://wordlyai.pro", "https://www.wordlyai.pro"],
     credentials: true
 }));
 // Webhook parsing might need strict JSON or raw body depending on signature verification.
