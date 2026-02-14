@@ -13,6 +13,9 @@ dotenv.config();
 
 const app = express();
 
+// Security: Hide Express framework information
+app.disable('x-powered-by');
+
 app.use(cors({
     origin: [
         "https://ai-paraphraser-mission-millionaire.pages.dev",
@@ -26,6 +29,14 @@ app.use(cors({
 // Webhook parsing might need strict JSON or raw body depending on signature verification.
 // For now, express.json() is likely enough as Cashfree sends JSON.
 app.use(express.json());
+
+// Security: Block access to sensitive paths
+app.use((req, res, next) => {
+    if (req.url.includes('.env') || req.url.includes('.git')) {
+        return res.status(403).send("Forbidden");
+    }
+    next();
+});
 
 app.use((req, res, next) => {
     console.log(`[REQUEST] ${req.method} ${req.url}`);
