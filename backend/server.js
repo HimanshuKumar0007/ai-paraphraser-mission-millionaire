@@ -17,9 +17,15 @@ const app = express();
 app.disable('x-powered-by');
 
 app.use(cors({
-    origin: ["https://wordlyai.pro", "https://www.wordlyai.pro"],
+    origin: [
+        "https://wordlyai.pro",
+        "https://www.wordlyai.pro"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true
 }));
+
+app.options('*', cors());
 // Webhook parsing might need strict JSON or raw body depending on signature verification.
 // For now, express.json() is likely enough as Cashfree sends JSON.
 app.use(express.json());
