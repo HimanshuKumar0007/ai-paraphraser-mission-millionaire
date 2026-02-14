@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://ai-paraphraser-mission-millionaire-production.up.railway.app",
+  baseURL: "https://api.wordlyai.pro",
 });
 
 API.interceptors.request.use((req) => {
