@@ -6,8 +6,8 @@ export const createOrder = async (req, res) => {
     try {
         const userId = req.user.userId;
         const userEmail = req.user.email || "test@example.com";
-        const customerId = String(userId);
-        const orderId = "order_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+        const customerId = "user_" + userId;
+        const orderId = "order_" + Date.now();
 
         const payload = {
             order_id: orderId,
@@ -19,8 +19,8 @@ export const createOrder = async (req, res) => {
                 customer_phone: "9999999999"
             },
             order_meta: {
-                return_url: `${process.env.FRONTEND_URL}/index.html?order_id={order_id}`,
-                notify_url: `${process.env.API_BASE_URL}/api/cashfree/webhook`
+                return_url: `${process.env.FRONTEND_URL}/payment-success.html?order_id={order_id}`,
+                notify_url: `${process.env.API_BASE_URL}/webhook/cashfree`
             }
         };
 
@@ -37,7 +37,7 @@ export const createOrder = async (req, res) => {
                 "x-client-id": process.env.CASHFREE_CLIENT_ID,
                 "x-client-secret": process.env.CASHFREE_CLIENT_SECRET,
                 "Content-Type": "application/json",
-                "x-api-version": "2023-08-01"
+                "x-api-version": "2022-09-01"
             },
             body: JSON.stringify(payload)
         });
@@ -84,7 +84,7 @@ export const verifyOrder = async (req, res) => {
             headers: {
                 "x-client-id": process.env.CASHFREE_CLIENT_ID,
                 "x-client-secret": process.env.CASHFREE_CLIENT_SECRET,
-                "x-api-version": "2023-08-01"
+                "x-api-version": "2022-09-01"
             }
         });
 

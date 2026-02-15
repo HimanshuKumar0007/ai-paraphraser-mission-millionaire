@@ -7,6 +7,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import paraphraseRoutes from "./src/routes/paraphraseRoutes.js";
 import paymentRoutes from "./src/routes/paymentRoutes.js";
 import webhookRoutes from "./src/routes/webhookRoutes.js";
+import { cashfreeWebhook } from "./src/controllers/webhookController.js";
 import { requireAuth } from "./src/middleware/authMiddleware.js";
 
 dotenv.config();
@@ -26,6 +27,9 @@ app.use(cors({
 }));
 
 app.options('*', cors());
+// Webhook route MUST be before express.json() to allow raw body access
+app.use("/webhook", webhookRoutes);
+
 // Webhook parsing might need strict JSON or raw body depending on signature verification.
 // For now, express.json() is likely enough as Cashfree sends JSON.
 app.use(express.json());
@@ -51,13 +55,7 @@ app.use("/auth", authRoutes);
 app.use("/api/paraphrase", paraphraseRoutes);
 app.use("/test", testRoutes);
 app.use("/payment", paymentRoutes);
-app.post("/api/cashfree/webhook", async (req, res) => {
-    console.log("🔥 WEBHOOK HIT");
-    console.log("BODY:", req.body);
-    res.status(200).send("OK");
-});
 
-app.use("/webhook", webhookRoutes);
 
 app.get("/protected", requireAuth, async (req, res) => {
     try {
