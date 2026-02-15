@@ -19,7 +19,7 @@ export const createOrder = async (req, res) => {
                 customer_phone: "9999999999"
             },
             order_meta: {
-                return_url: `${process.env.FRONTEND_URL}/dashboard.html?order_id={order_id}`,
+                return_url: `${process.env.FRONTEND_URL}/index.html?order_id={order_id}`,
                 notify_url: `${process.env.API_BASE_URL}/api/cashfree/webhook`
             }
         };

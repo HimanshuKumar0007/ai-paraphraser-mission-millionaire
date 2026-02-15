@@ -21,7 +21,8 @@ $repoExists = gcloud artifacts repositories list --project=$PROJECT_ID --locatio
 if (-not $repoExists) {
     Write-Host "Creating repository $REPO_NAME..."
     gcloud artifacts repositories create $REPO_NAME --repository-format=docker --location=$REGION --description="Docker repository for WordlyAi"
-} else {
+}
+else {
     Write-Host "Repository $REPO_NAME already exists."
 }
 
