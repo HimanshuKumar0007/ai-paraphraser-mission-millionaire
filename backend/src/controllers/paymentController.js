@@ -24,10 +24,12 @@ export const createOrder = async (req, res) => {
             }
         };
 
-        const CASHFREE_MODE = process.env.CASHFREE_MODE || "sandbox";
-        const CASHFREE_URL = CASHFREE_MODE === "production"
-            ? "https://api.cashfree.com/pg/orders"
-            : "https://sandbox.cashfree.com/pg/orders";
+        // DEBUG: Log Environment Variables (Safe)
+        console.log("DEBUG ENV: CASHFREE_MODE =", process.env.CASHFREE_MODE);
+
+        // FORCING PRODUCTION MODE
+        const CASHFREE_MODE = "production";
+        const CASHFREE_URL = "https://api.cashfree.com/pg/orders";
 
         console.log(`[Payment] Creating order in ${CASHFREE_MODE} mode: ${CASHFREE_URL}`);
 
@@ -72,10 +74,9 @@ export const verifyOrder = async (req, res) => {
             return res.status(400).json({ error: "Order ID is required" });
         }
 
-        const CASHFREE_MODE = process.env.CASHFREE_MODE || "sandbox";
-        const CASHFREE_URL = CASHFREE_MODE === "production"
-            ? `https://api.cashfree.com/pg/orders/${order_id}`
-            : `https://sandbox.cashfree.com/pg/orders/${order_id}`;
+        // FORCING PRODUCTION MODE
+        const CASHFREE_MODE = "production";
+        const CASHFREE_URL = `https://api.cashfree.com/pg/orders/${order_id}`;
 
         console.log(`[Payment] Verifying order ${order_id} at ${CASHFREE_URL}`);
 
