@@ -6,9 +6,8 @@ import testRoutes from "./src/routes/testRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import paraphraseRoutes from "./src/routes/paraphraseRoutes.js";
 import paymentRoutes from "./src/routes/paymentRoutes.js";
-import webhookRoutes from "./src/routes/webhookRoutes.js";
-import { cashfreeWebhook } from "./src/controllers/webhookController.js";
 import { requireAuth } from "./src/middleware/authMiddleware.js";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -27,10 +26,66 @@ app.use(cors({
 }));
 
 app.options('*', cors());
-// Webhook route MUST be before express.json() to allow raw body access
-app.use("/webhook", webhookRoutes);
+app.options('*', cors());
 
-// Webhook parsing might need strict JSON or raw body depending on signature verification.
+function verifySignature(body, signature, secret) {
+    const payload = { ...body };
+    delete payload.signature;
+
+    const sortedKeys = Object.keys(payload).sort();
+
+    let data = "";
+    sortedKeys.forEach(key => {
+        data += payload[key];
+    });
+
+    const generated = crypto
+        .createHmac("sha256", secret)
+        .update(data)
+        .digest("base64");
+
+    return generated === signature;
+}
+
+app.post("/api/cashfree/webhook", express.json(), async (req, res) => {
+    try {
+        const signature = req.headers["x-webhook-signature"] || req.body.signature;
+
+        const isValid = verifySignature(
+            req.body,
+            signature,
+            process.env.CASHFREE_CLIENT_SECRET
+        );
+
+        if (!isValid) {
+            console.log("❌ Invalid signature");
+            return res.status(400).send("Invalid");
+        }
+
+        console.log("✅ Valid webhook");
+
+        const { order_status, customer_details } = req.body;
+
+        if (order_status === "PAID") {
+
+            const email = customer_details.customer_email;
+
+            await sql`
+                UPDATE users
+                SET plan = 'premium'
+                WHERE email = ${email}
+            `;
+
+            console.log("🎉 User upgraded:", email);
+        }
+
+        res.status(200).send("OK");
+
+    } catch (err) {
+        console.error("Webhook Error:", err);
+        res.status(500).send("Error");
+    }
+});
 // For now, express.json() is likely enough as Cashfree sends JSON.
 app.use(express.json());
 
